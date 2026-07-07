@@ -1,0 +1,22 @@
+export const traits = [
+  "Adaptability",
+  "Creativity",
+  "Critical Thinking",
+  "Empathy",
+  "Leadership",
+  "Collaboration",
+  "Resilience",
+  "Initiative",
+  "Integrity",
+  "Communication",
+  "Problem-Solving",
+  "Decision-Making",
+  "Time Management",
+  "Emotional Intelligence",
+  "Attention to Detail",
+  "Strategic Vision",
+  "Accountability",
+  "Innovation",
+  "Flexibility",
+  "Motivation"
+];
