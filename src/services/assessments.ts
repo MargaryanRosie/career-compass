@@ -27,10 +27,10 @@ export async function saveAssessment(input: {
     .from("assessments")
     .insert({
       user_id: input.userId,
-      final_trait_profile: input.traitProfile,
-      career_scores: input.careerScores,
-      recommended_careers: input.recommendedCareers,
-      answers: input.answers,
+      final_trait_profile: input.traitProfile as unknown as never,
+      career_scores: input.careerScores as unknown as never,
+      recommended_careers: input.recommendedCareers as unknown as never,
+      answers: input.answers as unknown as never,
     })
     .select("id")
     .single();
