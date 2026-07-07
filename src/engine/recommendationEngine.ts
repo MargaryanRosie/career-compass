@@ -88,7 +88,6 @@ export function selectNextQuestion(
   let best: Question | null = null;
   let bestScore = -Infinity;
 
-  for (const q in_ of candidates) void in_;
   for (const q of candidates) {
     let info = 0;
     // Consider both the question's own trait tags and traits its answers surface.
