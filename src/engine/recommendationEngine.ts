@@ -116,11 +116,6 @@ export function selectNextQuestion(
   return best;
 }
 
-export function getFixedFirstQuestion(): Question {
-  const q = questionLibrary.find((x) => x.id === FIXED_FIRST_QUESTION_ID);
-  if (!q) throw new Error("Fixed first question missing from question library");
-  return q;
-}
 
 export function buildRecommendations(
   profile: TraitProfile,
