@@ -10,7 +10,9 @@ import type {
 } from "./types";
 
 // -- Constants (tunable, no hardcoded careers/traits/questions) --------------
-const FIXED_FIRST_QUESTION_ID = 1;
+// NOTE: this engine has no concept of a "first question" — the fixed
+// opening question (src/config/fixedQuestion.ts) is handled entirely by
+// assessmentEngine.ts before this engine is ever consulted.
 const TOP_CAREERS_FOR_TARGETING = 5;
 const CONFIDENCE_SUFFICIENT = 3;
 // Answer traits are provided as an ordered list. First trait gets the largest
@@ -114,11 +116,6 @@ export function selectNextQuestion(
   return best;
 }
 
-export function getFixedFirstQuestion(): Question {
-  const q = questionLibrary.find((x) => x.id === FIXED_FIRST_QUESTION_ID);
-  if (!q) throw new Error("Fixed first question missing from question library");
-  return q;
-}
 
 export function buildRecommendations(
   profile: TraitProfile,

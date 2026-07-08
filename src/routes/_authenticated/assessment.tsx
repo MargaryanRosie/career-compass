@@ -2,18 +2,15 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  applyAnswer,
-  buildRecommendations,
-  computeCareerScores,
-  createEmptyTraitProfile,
-  getFixedFirstQuestion,
-  selectNextQuestion,
-} from "@/engine/recommendationEngine";
-import type { AnswerRecord, TraitProfile } from "@/engine/types";
+  answerQuestion,
+  finalizeAssessment,
+  getInitialAssessmentState,
+  getInitialQuestion,
+  TOTAL_QUESTIONS,
+  type AssessmentState,
+} from "@/engine/assessmentEngine";
 import type { Question } from "@/config/questionLibrary";
 import { saveAssessment } from "@/services/assessments";
-
-const TOTAL_QUESTIONS = 5;
 
 export const Route = createFileRoute("/_authenticated/assessment")({
   head: () => ({
@@ -29,44 +26,29 @@ function AssessmentPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [profile, setProfile] = useState<TraitProfile>(() => createEmptyTraitProfile());
-  const [asked, setAsked] = useState<number[]>(() => []);
-  const [answers, setAnswers] = useState<AnswerRecord[]>([]);
-  const [current, setCurrent] = useState<Question>(() => getFixedFirstQuestion());
+  const [state, setState] = useState<AssessmentState>(() => getInitialAssessmentState());
+  const [current, setCurrent] = useState<Question>(() => getInitialQuestion());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const step = answers.length + 1;
-  const progress = useMemo(() => (answers.length / TOTAL_QUESTIONS) * 100, [answers.length]);
+  const step = state.answers.length + 1;
+  const progress = useMemo(() => (state.answers.length / TOTAL_QUESTIONS) * 100, [state.answers.length]);
 
   async function choose(answerIndex: number) {
     if (saving) return;
-    const answer = current.sampleAnswers[answerIndex];
-    const nextProfile = applyAnswer(profile, answer.traits);
-    const nextAnswers: AnswerRecord[] = [
-      ...answers,
-      {
-        questionId: current.id,
-        questionText: current.text,
-        answerIndex,
-        answerText: answer.answer,
-        traits: answer.traits,
-      },
-    ];
-    const nextAsked = [...asked, current.id];
+    const result = answerQuestion(current, answerIndex, state);
 
-    if (nextAnswers.length >= TOTAL_QUESTIONS) {
+    if (result.done) {
       setSaving(true);
       setError(null);
       try {
-        const careerScores = computeCareerScores(nextProfile);
-        const recs = buildRecommendations(nextProfile, 3);
+        const { careerScores, recommendedCareers } = finalizeAssessment(result.state.profile, 3);
         const saved = await saveAssessment({
           userId: user!.id,
-          traitProfile: nextProfile,
+          traitProfile: result.state.profile,
           careerScores,
-          recommendedCareers: recs,
-          answers: nextAnswers,
+          recommendedCareers,
+          answers: result.state.answers,
         });
         navigate({ to: "/results/$id", params: { id: saved.id }, replace: true });
       } catch (err) {
@@ -76,10 +58,8 @@ function AssessmentPage() {
       return;
     }
 
-    setProfile(nextProfile);
-    setAnswers(nextAnswers);
-    setAsked(nextAsked);
-    setCurrent(selectNextQuestion(nextProfile, nextAsked));
+    setState(result.state);
+    setCurrent(result.nextQuestion);
   }
 
   return (
